@@ -11,7 +11,7 @@ internal class Program
 		var left = new Professional?[]
 		{
 			new() { Attack = 2, Health = 10 },
-			new() { Attack = 5, Health = 10 },
+			new() { Attack = 50, Health = 10 },
 			null,
 			new() { Attack = 5, Health = 10 },
 			new() { Attack = 7, Health = 10 }
@@ -19,8 +19,8 @@ internal class Program
 
 		var right = new Professional?[]
 		{
-			new() { Attack = 8, Health = 12 },
-			null,
+			new() { Attack = 8, Health = 50 },
+			new Nurse { Attack = 7, Health = 10 },
 			new() { Attack = 3, Health = 6 },
 			new() { Attack = 2, Health = 7 },
 			null

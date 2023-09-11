@@ -11,6 +11,8 @@ public class Game
 	
 	Random _rnd = new();
 
+	public void Log(string text) { Console.WriteLine(text); }
+
 	public int RunTurn(Professional?[] left, Professional?[] right)
 	{
 		Debug.Assert(left.Length == MAX_PROFESSIONALS);
@@ -19,12 +21,12 @@ public class Game
 		SetGame(left);
 		SetGame(right);
 
-		Console.WriteLine($"{ToString(left.Reverse())} - {ToString(right)}");
+		Log($"{ToString(left.Reverse())} - {ToString(right)}");
 
 		int iteration = 1;
 		while (AnyLeft(left) && AnyLeft(right))
 		{
-			Console.WriteLine($"\n\nIteration #{iteration++}:");
+			Log($"\n\nIteration #{iteration++}:");
 
 			Professional
 				lp = GetFirst(left)!,
@@ -79,8 +81,8 @@ public class Game
 			if (isRightDead)
 				right[Array.IndexOf(right, rp)] = null;
 
-			Console.WriteLine("\n\nResult");
-			Console.WriteLine($"{ToString(left.Reverse())} - {ToString(right)}");
+			Log("\n\nResult");
+			Log($"{ToString(left.Reverse())} - {ToString(right)}");
 
 			Console.ReadKey(true);
 		}
@@ -101,5 +103,11 @@ public class Game
 				p.Game = this;
 	}
 
-	static string ToString(IEnumerable<Professional?> list) => string.Join(", ", list);
+	static string ToString(IEnumerable<Professional?> list)
+		=> string.Join(" , ", list.Select(p => p == null ? "*" : p.ToString()));
+
+	internal void ChangeHealth(Professional p, int newHealth)
+	{
+		p.Health = Math.Min(50, newHealth);
+	}
 }
