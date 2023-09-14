@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace SuperAutoProfessionals;
 
 public class Game
 {
 	Random _rnd = new();
+	readonly List<TurnEvent> _events = new();
 
 	public void Log(string text) { Console.WriteLine(text); }
 
@@ -13,6 +16,17 @@ public class Game
 		left.SetGame(this);
 		right.SetGame(this);
 		Log($"{left} - {right}");
+
+		left.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
+		right.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
+		ProcessEvents();
+
+		IEnumerable<Event> events;
+		void addEvents(Professional p)
+		{
+			foreach (var e in events)
+				_events.Add(new TurnEvent(p, e));
+		}
 
 		int iteration = 1;
 		while (left.AnyLeft && right.AnyLeft)
@@ -23,63 +37,95 @@ public class Game
 				lp = left.First!,
 				rp = right.First!;
 
-			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
-			{
-				left[i]?.OnFriendBeforeAttack(lp);
-				left[i]?.OnEnemyBeforeAttack(rp);
-
-				right[i]?.OnFriendBeforeAttack(rp);
-				right[i]?.OnEnemyBeforeAttack(lp);
-			}
+			process(EventCode.BeforeAttack);
 
 			lp.Health -= rp.Attack;
 			rp.Health -= lp.Attack;
 
-			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
-			{
-				left[i]?.OnFriendAfterAttack(lp);
-				left[i]?.OnEnemyAfterAttack(rp);
+			process(EventCode.AfterAttack);
+			process(EventCode.Hurt);
 
-				right[i]?.OnFriendAfterAttack(rp);
-				right[i]?.OnEnemyAfterAttack(lp);
-			}
+			events = dieEvents().ToList();
+			addAndProcess();
 
-			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
-			{
-				left[i]?.OnFriendHurt(lp);
-				left[i]?.OnEnemyHurt(rp);
-
-				right[i]?.OnFriendHurt(rp);
-				right[i]?.OnEnemyHurt(lp);
-			}
-
-			bool
-				isLeftDead = lp.IsDead,
-				isRightDead = rp.IsDead;
-
-			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
-			{
-				if (isLeftDead) left[i]?.OnFriendDie(lp);
-				if (isRightDead) left[i]?.OnEnemyDie(rp);
-
-				if (isRightDead) right[i]?.OnFriendDie(rp);
-				if (isLeftDead) right[i]?.OnEnemyDie(lp);
-			}
-
-			if (isLeftDead)
+			if (lp.IsDead)
 				left[left.GetIndex(lp)] = null;
 
-			if (isRightDead)
+			if (rp.IsDead)
 				right[right.GetIndex(rp)] = null;
 
 			Log("\n\nResult");
 			Log($"{left} - {right}");
 
 			Console.ReadKey(true);
+
+			void process(EventCode code)
+			{
+				events = new Event[] { new(code, lp), new(code, rp) };
+				addAndProcess();
+			}
+
+			void addAndProcess()
+			{
+				left.ForEach(addEvents);
+				right.ForEach(addEvents);
+				ProcessEvents();
+			}
+
+			IEnumerable<Event> dieEvents()
+			{
+				if (lp.IsDead) yield return new Event(EventCode.Die, lp);
+				if (rp.IsDead) yield return new Event(EventCode.Die, rp);
+			}
 		}
 
 		return left.AnyLeft
 			? left
 			: right.AnyLeft ? right : null;
+	}
+
+	void ProcessEvents()
+	{
+		for (;;)
+		{
+			var maxPriority = -1;
+			TurnEvent? next = null;
+			foreach (var e in _events)
+			{
+				var priority = e.Priority;
+				if (priority > maxPriority)
+				{
+					next = e;
+					maxPriority = priority;
+				}
+			}
+
+			if (next == null)
+				return; // All events are processed
+
+			next.Call();
+			_events.Remove(next);
+		}
+	}
+
+	class TurnEvent
+	{
+		public TurnEvent(Professional subject, Event e)
+		{
+			_event = e;
+			_code = e.Code;
+			_subject = subject;
+		}
+
+		readonly Event _event;
+		readonly EventCode _code;
+		readonly Professional _subject;
+
+		public int Priority => (100 - (int)_code) * 10000 + _subject.Attack * 100 + _subject.Health;
+
+		public void Call()
+		{
+			_subject.On(_event);
+		}
 	}
 }

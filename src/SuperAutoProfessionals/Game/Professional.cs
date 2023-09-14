@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define LOG
+
+using System;
 
 namespace SuperAutoProfessionals;
 
@@ -30,22 +32,26 @@ public class Professional
 
 	public virtual string CodeName => "Pr";
 
-	public virtual void OnStartOfBattle() { }
+	/// <returns>true if something has been done</returns>
+	internal virtual bool On(Event e)
+	{
+#if LOG
+		if (e.Professional == null)
+			Log($"{e.Code}");
+		else
+			Log($"{e.Code} ({e.Professional})");
+#endif
 
-	public virtual void OnFriendBeforeAttack(Professional friend) { }
-	public virtual void OnEnemyBeforeAttack(Professional enemy) { }
+		return false;
+	}
 
-	public virtual void OnFriendAfterAttack(Professional friend) { }
-	public virtual void OnEnemyAfterAttack(Professional enemy) { }
-
-	public virtual void OnFriendHurt(Professional friend) { }
-	public virtual void OnEnemyHurt(Professional enemy) { }
-
-	public virtual void OnFriendDie(Professional friend) { }
-	public virtual void OnEnemyDie(Professional enemy) { }
-
-	public virtual void OnFriendSpawn(Professional friend) { }
-	public virtual void OnEnemySpawn(Professional enemy) { }
+	public bool IsEnemy(Professional p) => p.Team != Team;
+	public bool IsFriend(Professional p) => p.Team == Team;
 
 	public override string ToString() => $"{Attack} {CodeName} {Health}";
+
+	protected void Log(string text)
+	{
+		Game.Log($"{this} => {text}");
+	}
 }

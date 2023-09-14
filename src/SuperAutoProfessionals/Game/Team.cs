@@ -45,7 +45,7 @@ public class Team
 		return string.Join(" , ", p.Select(x => x == null ? "*" : x.ToString()));
 	}
 
-	void ForEach(Action<Professional> action)
+	public void ForEach(Action<Professional> action)
 	{
 		foreach (var p in _professionals)
 			if (p != null)

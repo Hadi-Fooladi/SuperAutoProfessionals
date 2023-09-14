@@ -4,14 +4,18 @@ public class Nurse : Professional
 {
 	public override string CodeName => "Nu";
 
-	public override void OnFriendHurt(Professional friend)
+	internal override bool On(Event e)
 	{
-		base.OnFriendHurt(friend);
+		base.On(e);
 
-		if (friend == this || friend.IsDead) return;
+		if (e.Code != EventCode.Hurt) return false;
 
-		Game.Log($"Healing {friend.CodeName}");
+		var p = e.Professional!;
+		if (p == this || p.IsDead || IsEnemy(p)) return false;
 
-		friend.Health += 3;
+		p.Health += 3;
+
+		Log($"Healing {p}");
+		return true;
 	}
 }
