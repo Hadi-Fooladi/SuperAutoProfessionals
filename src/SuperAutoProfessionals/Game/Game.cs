@@ -8,7 +8,7 @@ public class Game
 
 	public void Log(string text) { Console.WriteLine(text); }
 
-	public int RunTurn(Team left, Team right)
+	public Team? RunTurn(Team left, Team right)
 	{
 		left.SetGame(this);
 		right.SetGame(this);
@@ -79,7 +79,7 @@ public class Game
 		}
 
 		return left.AnyLeft
-			? -1
-			: right.AnyLeft ? 1 : 0;
+			? left
+			: right.AnyLeft ? right : null;
 	}
 }

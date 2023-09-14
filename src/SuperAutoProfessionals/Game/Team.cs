@@ -9,18 +9,19 @@ public class Team
 {
 	public const int MAX_PROFESSIONALS = 5;
 
-	readonly Side _side;
 	readonly Professional?[] _professionals;
 
 	public Team(IEnumerable<Professional?> professionals, Side side)
 	{
-		_side = side;
+		Side = side;
 		_professionals = professionals.ToArray();
 
 		Debug.Assert(_professionals.Length == MAX_PROFESSIONALS);
 
 		ForEach(p => p.Team = this);
 	}
+	
+	public Side Side { get; }
 
 	public Professional? this[int ndx]
 	{
@@ -40,7 +41,7 @@ public class Team
 
 	public override string ToString()
 	{
-		var p = _side == Side.Left ? _professionals.Reverse() : _professionals;
+		var p = Side == Side.Left ? _professionals.Reverse() : _professionals;
 		return string.Join(" , ", p.Select(x => x == null ? "*" : x.ToString()));
 	}
 

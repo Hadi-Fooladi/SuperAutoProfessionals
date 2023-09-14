@@ -26,6 +26,10 @@ internal class Program
 			null
 		};
 
-		Console.WriteLine(game.RunTurn(new Team(left, Side.Left), new Team(right, Side.Right)));
+		var winner = game.RunTurn(new Team(left, Side.Left), new Team(right, Side.Right));
+
+		Console.WriteLine();
+		Console.WriteLine();
+		Console.WriteLine(winner == null ? "Draw" : $"Winner: {winner.Side}");
 	}
 }
