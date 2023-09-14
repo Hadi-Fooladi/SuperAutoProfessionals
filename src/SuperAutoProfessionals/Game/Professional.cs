@@ -1,4 +1,4 @@
-﻿#define LOG
+﻿//#define LOG
 
 using System;
 
@@ -29,6 +29,8 @@ public class Professional
 	}
 
 	public bool IsDead => Health <= 0;
+
+	public int Index => Team.GetIndex(this);
 
 	public virtual string CodeName => "Pr";
 

@@ -49,10 +49,10 @@ public class Game
 			addAndProcess();
 
 			if (lp.IsDead)
-				left[left.GetIndex(lp)] = null;
+				left[lp.Index] = null;
 
 			if (rp.IsDead)
-				right[right.GetIndex(rp)] = null;
+				right[rp.Index] = null;
 
 			Log("\n\nResult");
 			Log($"{left} - {right}");
