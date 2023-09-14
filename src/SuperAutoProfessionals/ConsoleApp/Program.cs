@@ -11,7 +11,7 @@ internal class Program
 		var left = new Professional?[]
 		{
 			new() { Attack = 2, Health = 10 },
-			new() { Attack = 50, Health = 10 },
+			new() { Attack = 20, Health = 10 },
 			null,
 			new() { Attack = 5, Health = 10 },
 			new() { Attack = 7, Health = 10 }
@@ -26,6 +26,6 @@ internal class Program
 			null
 		};
 
-		Console.WriteLine(game.RunTurn(left, right));
+		Console.WriteLine(game.RunTurn(new Team(left, Side.Left), new Team(right, Side.Right)));
 	}
 }

@@ -1,11 +1,30 @@
-﻿namespace SuperAutoProfessionals;
+﻿using System;
+
+namespace SuperAutoProfessionals;
 
 public class Professional
 {
-	public Game Game { get; set; } = null!;
+	const int
+		MAX_HEALTH = 50,
+		MIN_ATTACK = 1,
+		MAX_ATTACK = 50;
 
-	public int Attack { get; set; }
-	public int Health { get; set; }
+	int _health, _attack;
+
+	public Game Game { get; set; } = null!;
+	public Team Team { get; set; } = null!;
+
+	public int Attack
+	{
+		get => _attack;
+		set => _attack = Math.Clamp(value, MIN_ATTACK, MAX_ATTACK);
+	}
+
+	public int Health
+	{
+		get => _health;
+		set => _health = Math.Min(value, MAX_HEALTH);
+	}
 
 	public bool IsDead => Health <= 0;
 

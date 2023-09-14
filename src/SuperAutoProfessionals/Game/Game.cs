@@ -1,38 +1,29 @@
 ﻿using System;
-using System.Linq;
-using System.Diagnostics;
-using System.Collections.Generic;
 
 namespace SuperAutoProfessionals;
 
 public class Game
 {
-	const int MAX_PROFESSIONALS = 5;
-	
 	Random _rnd = new();
 
 	public void Log(string text) { Console.WriteLine(text); }
 
-	public int RunTurn(Professional?[] left, Professional?[] right)
+	public int RunTurn(Team left, Team right)
 	{
-		Debug.Assert(left.Length == MAX_PROFESSIONALS);
-		Debug.Assert(right.Length == MAX_PROFESSIONALS);
-
-		SetGame(left);
-		SetGame(right);
-
-		Log($"{ToString(left.Reverse())} - {ToString(right)}");
+		left.SetGame(this);
+		right.SetGame(this);
+		Log($"{left} - {right}");
 
 		int iteration = 1;
-		while (AnyLeft(left) && AnyLeft(right))
+		while (left.AnyLeft && right.AnyLeft)
 		{
 			Log($"\n\nIteration #{iteration++}:");
 
 			Professional
-				lp = GetFirst(left)!,
-				rp = GetFirst(right)!;
+				lp = left.First!,
+				rp = right.First!;
 
-			for (int i = 0; i < MAX_PROFESSIONALS; i++)
+			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
 			{
 				left[i]?.OnFriendBeforeAttack(lp);
 				left[i]?.OnEnemyBeforeAttack(rp);
@@ -44,7 +35,7 @@ public class Game
 			lp.Health -= rp.Attack;
 			rp.Health -= lp.Attack;
 
-			for (int i = 0; i < MAX_PROFESSIONALS; i++)
+			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
 			{
 				left[i]?.OnFriendAfterAttack(lp);
 				left[i]?.OnEnemyAfterAttack(rp);
@@ -53,7 +44,7 @@ public class Game
 				right[i]?.OnEnemyAfterAttack(lp);
 			}
 
-			for (int i = 0; i < MAX_PROFESSIONALS; i++)
+			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
 			{
 				left[i]?.OnFriendHurt(lp);
 				left[i]?.OnEnemyHurt(rp);
@@ -66,7 +57,7 @@ public class Game
 				isLeftDead = lp.IsDead,
 				isRightDead = rp.IsDead;
 
-			for (int i = 0; i < MAX_PROFESSIONALS; i++)
+			for (int i = 0; i < Team.MAX_PROFESSIONALS; i++)
 			{
 				if (isLeftDead) left[i]?.OnFriendDie(lp);
 				if (isRightDead) left[i]?.OnEnemyDie(rp);
@@ -76,38 +67,19 @@ public class Game
 			}
 
 			if (isLeftDead)
-				left[Array.IndexOf(left, lp)] = null;
+				left[left.GetIndex(lp)] = null;
 
 			if (isRightDead)
-				right[Array.IndexOf(right, rp)] = null;
+				right[right.GetIndex(rp)] = null;
 
 			Log("\n\nResult");
-			Log($"{ToString(left.Reverse())} - {ToString(right)}");
+			Log($"{left} - {right}");
 
 			Console.ReadKey(true);
 		}
 
-		return AnyLeft(left)
+		return left.AnyLeft
 			? -1
-			: AnyLeft(right) ? 1 : 0;
-	}
-
-	static bool AnyLeft(IEnumerable<Professional?> p) => p.Any(x => x != null);
-
-	static Professional? GetFirst(IEnumerable<Professional?> p) => p.FirstOrDefault(x => x != null);
-
-	void SetGame(IEnumerable<Professional?> list)
-	{
-		foreach (var p in list)
-			if (p != null)
-				p.Game = this;
-	}
-
-	static string ToString(IEnumerable<Professional?> list)
-		=> string.Join(" , ", list.Select(p => p == null ? "*" : p.ToString()));
-
-	internal void ChangeHealth(Professional p, int newHealth)
-	{
-		p.Health = Math.Min(50, newHealth);
+			: right.AnyLeft ? 1 : 0;
 	}
 }

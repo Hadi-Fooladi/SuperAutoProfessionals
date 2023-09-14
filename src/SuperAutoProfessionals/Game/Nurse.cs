@@ -11,7 +11,7 @@ public class Nurse : Professional
 		if (friend == this || friend.IsDead) return;
 
 		Game.Log($"Healing {friend.CodeName}");
-		
-		Game.ChangeHealth(friend, friend.Health + 3);
+
+		friend.Health += 3;
 	}
 }
