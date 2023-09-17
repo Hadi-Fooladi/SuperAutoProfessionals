@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace SuperAutoProfessionals;
@@ -9,13 +10,17 @@ public class Game
 	Random _rnd = new();
 	readonly List<TurnEvent> _events = new();
 
-	public void Log(string text) { Console.WriteLine(text); }
+	public ILogger Logger { get; set; } = ConsoleLogger.Instance;
+	public Func<Task> WaitForNextIteration { get; set; } = WaitForNextIterationByConsole;
 
-	public Team? RunTurn(Team left, Team right)
+	public void Log(string text) { Logger.WriteLine(text); }
+
+	public async Task<Team?> RunTurn(Team left, Team right)
 	{
 		left.SetGame(this);
 		right.SetGame(this);
 		Log($"{left} - {right}");
+		await WaitForNextIteration();
 
 		left.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
 		right.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
@@ -57,7 +62,7 @@ public class Game
 			Log("\n\nResult");
 			Log($"{left} - {right}");
 
-			Console.ReadKey(true);
+			await WaitForNextIteration();
 
 			void process(EventCode code)
 			{
@@ -106,6 +111,12 @@ public class Game
 			next.Call();
 			_events.Remove(next);
 		}
+	}
+
+	static Task WaitForNextIterationByConsole()
+	{
+		Console.ReadKey(true);
+		return Task.CompletedTask;
 	}
 
 	class TurnEvent

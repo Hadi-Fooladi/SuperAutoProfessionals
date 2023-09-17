@@ -26,7 +26,7 @@ internal class Program
 			null
 		};
 
-		var winner = game.RunTurn(new Team(left, Side.Left), new Team(right, Side.Right));
+		var winner = game.RunTurn(new Team(left, Side.Left), new Team(right, Side.Right)).Result;
 
 		Console.WriteLine();
 		Console.WriteLine();
