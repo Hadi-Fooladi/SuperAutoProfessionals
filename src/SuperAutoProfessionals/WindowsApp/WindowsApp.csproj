@@ -1,14 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<Version>0.0.0</Version>
+		<Version>0.0.1</Version>
 		<UseWPF>true</UseWPF>
 		<Nullable>enable</Nullable>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net7.0-windows</TargetFramework>
 
-		<RootNamespace>SuperAutoProfessionals.$(MSBuildProjectName)</RootNamespace>
-		<AssemblyName>SuperAutoProfessionals.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>SuperAutoProfessionals.WindowsApp</RootNamespace>
+		<AssemblyName>SuperAutoProfessionals.WindowsApp</AssemblyName>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<Resource Include="Resources\*.png" />
+		
+		<ProjectReference Include="..\Game\Game.csproj" />
+	</ItemGroup>
 
 </Project>
