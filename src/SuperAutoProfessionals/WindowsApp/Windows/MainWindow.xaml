@@ -1,0 +1,11 @@
+﻿<Window
+	x:ClassModifier="internal"
+	x:Class="WindowsApp.MainWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Title="Super Auto Professionals"
+	Width="800" Height="600">
+	<Grid>
+
+	</Grid>
+</Window>
