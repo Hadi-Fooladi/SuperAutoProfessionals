@@ -10,6 +10,7 @@ public class Game
 	Random _rnd = new();
 	readonly List<TurnEvent> _events = new();
 
+	public bool LogTeams { get; set; } = true;
 	public ILogger Logger { get; set; } = ConsoleLogger.Instance;
 	public Func<Task> WaitForNextIteration { get; set; } = WaitForNextIterationByConsole;
 
@@ -19,7 +20,7 @@ public class Game
 	{
 		left.SetGame(this);
 		right.SetGame(this);
-		Log($"{left} - {right}");
+		logTeams();
 		await WaitForNextIteration();
 
 		left.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
@@ -36,7 +37,7 @@ public class Game
 		int iteration = 1;
 		while (left.AnyLeft && right.AnyLeft)
 		{
-			Log($"\n\nIteration #{iteration++}:");
+			Log($"Iteration #{iteration++}");
 
 			Professional
 				lp = left.First!,
@@ -59,9 +60,8 @@ public class Game
 			if (rp.IsDead)
 				right[rp.Index] = null;
 
-			Log("\n\nResult");
-			Log($"{left} - {right}");
-
+			logTeams();
+			
 			await WaitForNextIteration();
 
 			void process(EventCode code)
@@ -87,6 +87,12 @@ public class Game
 		return left.AnyLeft
 			? left
 			: right.AnyLeft ? right : null;
+
+		void logTeams()
+		{
+			if (LogTeams)
+				Log($"{left} - {right}");
+		}
 	}
 
 	void ProcessEvents()

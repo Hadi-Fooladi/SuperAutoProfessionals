@@ -30,6 +30,7 @@ partial class MainWindow
 	{
 		var game = new Game
 		{
+			LogTeams = false,
 			Logger = new TextBoxLogger(_log),
 			WaitForNextIteration = WaitForNextIteration
 		};
