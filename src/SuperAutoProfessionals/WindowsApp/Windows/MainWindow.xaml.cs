@@ -30,7 +30,7 @@ partial class MainWindow
 	{
 		var left = new Professional?[]
 		{
-			new() { Attack = 2, Health = 10 },
+			new Buthcer { Attack = 2, Health = 10 },
 			new() { Attack = 20, Health = 10 },
 			null,
 			new() { Attack = 5, Health = 10 },
@@ -39,7 +39,7 @@ partial class MainWindow
 
 		var right = new Professional?[]
 		{
-			new() { Attack = 8, Health = 30 },
+			new() { Attack = 8, Health = 4 },
 			new Nurse { Attack = 7, Health = 10 },
 			new() { Attack = 3, Health = 6 },
 			new() { Attack = 2, Health = 7 },
