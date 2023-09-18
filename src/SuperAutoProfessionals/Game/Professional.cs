@@ -15,6 +15,7 @@ public class Professional
 
 	public Game Game { get; set; } = null!;
 	public Team Team { get; set; } = null!;
+	public Team EnemyTeam { get; set; } = null!;
 
 	public int Attack
 	{

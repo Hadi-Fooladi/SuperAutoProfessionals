@@ -20,7 +20,7 @@ public class Team
 
 		ForEach(p => p.Team = this);
 	}
-	
+
 	public Side Side { get; }
 
 	public Professional? this[int ndx]
@@ -58,5 +58,26 @@ public class Team
 		foreach (var p in _professionals)
 			if (p != null)
 				action(p);
+	}
+
+	public bool Spawn(Professional pro, int pos)
+	{
+		if (pos is < 0 or >= MAX_PROFESSIONALS) return false;
+
+		if (spawn(pos)) return true;
+
+		for (int i = MAX_PROFESSIONALS - 1; i >= 0; i--)
+			if (spawn(i))
+				return true;
+
+		return false;
+
+		bool spawn(int ndx)
+		{
+			if (this[ndx] != null) return false;
+
+			this[ndx] = pro;
+			return true;
+		}
 	}
 }

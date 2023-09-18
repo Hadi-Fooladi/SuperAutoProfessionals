@@ -13,9 +13,9 @@ public class Nurse : Professional
 		var p = e.Professional!;
 		if (p == this || p.IsDead || IsEnemy(p)) return false;
 
+		Log($"Healing {p}");
 		p.Health += 3;
 
-		Log($"Healing {p}");
 		return true;
 	}
 }

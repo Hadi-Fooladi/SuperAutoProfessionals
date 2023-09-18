@@ -15,13 +15,17 @@ public class Game
 
 		left.SetGame(this);
 		right.SetGame(this);
+		left.ForEach(p => p.EnemyTeam = right);
+		right.ForEach(p => p.EnemyTeam = left);
 	}
 
-	Random _rnd = new();
+	bool _isProcessing;
 	readonly Team _left, _right;
 	readonly List<TurnEvent> _events = new();
 	readonly List<Professional> _deads = new();
+	readonly List<SpawnRequest> _spawns = new();
 
+	public Random Random { get; } = new();
 	public bool LogTeams { get; set; } = true;
 	public ILogger Logger { get; set; } = ConsoleLogger.Instance;
 	public Func<Task> WaitForNextIteration { get; set; } = WaitForNextIterationByConsole;
@@ -57,7 +61,7 @@ public class Game
 			}
 
 			logTeams();
-			
+
 			await WaitForNextIteration();
 
 			void process(EventCode code)
@@ -79,9 +83,32 @@ public class Game
 		}
 	}
 
+	public void Attack(Professional p, int amount)
+	{
+		Debug.Assert(amount > 0);
+
+		if (p.IsDead) return;
+		p.Health -= amount;
+
+		NotifyAll(new Event(EventCode.Hurt, p));
+		ProcessEvents();
+	}
+
+	public void Spwan(Team team, Professional pro, int position)
+	{
+		pro.Game = this;
+		pro.Team = team;
+		pro.EnemyTeam = team == _left ? _right : team;
+
+		_spawns.Add(new SpawnRequest(pro, position));
+	}
+
 	void ProcessEvents()
 	{
-		for (;;)
+		if (_isProcessing) return;
+
+		_isProcessing = true;
+		for (; ; )
 		{
 			var maxPriority = -1;
 			TurnEvent? next = null;
@@ -100,36 +127,47 @@ public class Game
 				CheckDeads();
 				if (_events.Any()) continue;
 
-				return; // All events are processed
+				foreach (var dead in _deads)
+					dead.Team.Remove(dead);
+
+				_deads.Clear();
+
+				CheckSpawns();
+				if (_events.Any()) continue;
+
+				break; // All events are processed
 			}
 
 			next.Call();
 			_events.Remove(next);
 		}
+		_isProcessing = false;
 	}
 
 	void CheckDeads()
 	{
 		var deads = _left.Deads
 			.Concat(_right.Deads)
-			.Where(p => !_deads.Contains(p))
-			.ToList();
-
-		if (!deads.Any()) return;
+			.Where(p => !_deads.Contains(p));
 
 		foreach (var dead in deads)
 		{
 			_deads.Add(dead);
 			NotifyAll(new Event(EventCode.Die, dead));
 		}
+	}
 
-		ProcessEvents();
+	void CheckSpawns()
+	{
+		if (!_spawns.Any()) return;
 
-		foreach (var dead in deads)
+		foreach (var spawn in _spawns)
 		{
-			_deads.Remove(dead);
-			dead.Team.Remove(dead);
+			var pro = spawn.Pro;
+			if (pro.Team.Spawn(pro, spawn.Position))
+				NotifyAll(new Event(EventCode.Spawn, pro));
 		}
+		_spawns.Clear();
 	}
 
 	void NotifyAll(Event e)
@@ -144,6 +182,7 @@ public class Game
 		return Task.CompletedTask;
 	}
 
+	#region Nested Classes
 	class TurnEvent
 	{
 		public TurnEvent(Professional subject, Event e)
@@ -164,4 +203,17 @@ public class Game
 			_subject.On(_event);
 		}
 	}
+
+	class SpawnRequest
+	{
+		public int Position { get; }
+		public Professional Pro { get; }
+
+		public SpawnRequest(Professional pro, int position)
+		{
+			Pro = pro;
+			Position = position;
+		}
+	}
+	#endregion
 }
