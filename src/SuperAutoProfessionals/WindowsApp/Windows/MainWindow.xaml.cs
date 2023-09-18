@@ -34,7 +34,7 @@ partial class MainWindow
 			new() { Attack = 20, Health = 10 },
 			null,
 			new() { Attack = 5, Health = 10 },
-			new() { Attack = 7, Health = 10 }
+			new GraveDigger { Attack = 7, Health = 10 }
 		};
 
 		var right = new Professional?[]
