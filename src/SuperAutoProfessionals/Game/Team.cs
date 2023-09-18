@@ -32,11 +32,19 @@ public class Team
 	public bool AnyLeft => _professionals.Any(p => p != null);
 	public Professional? First => _professionals.FirstOrDefault(p => p != null);
 
+	public IEnumerable<Professional> Deads => Members.Where(p => p.IsDead);
+	public IEnumerable<Professional> Members => _professionals.Where(p => p != null)!;
+
 	public int GetIndex(Professional? professional) => Array.IndexOf(_professionals, professional);
 
 	public void SetGame(Game game)
 	{
 		ForEach(p => p.Game = game);
+	}
+
+	public void Remove(Professional professional)
+	{
+		_professionals[professional.Index] = null;
 	}
 
 	public override string ToString()

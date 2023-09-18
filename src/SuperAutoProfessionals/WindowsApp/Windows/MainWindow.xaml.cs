@@ -28,13 +28,6 @@ partial class MainWindow
 
 	async void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
 	{
-		var game = new Game
-		{
-			LogTeams = false,
-			Logger = new TextBoxLogger(_log),
-			WaitForNextIteration = WaitForNextIteration
-		};
-
 		var left = new Professional?[]
 		{
 			new() { Attack = 2, Health = 10 },
@@ -57,10 +50,17 @@ partial class MainWindow
 			lt = new(left, Side.Left),
 			rt = new(right, Side.Right);
 
+		var game = new Game(lt, rt)
+		{
+			LogTeams = false,
+			Logger = new TextBoxLogger(_log),
+			WaitForNextIteration = WaitForNextIteration
+		};
+
 		_leftTeam.Team = lt;
 		_rightTeam.Team = rt;
 
-		var winner = await game.RunTurn(lt, rt);
+		var winner = await game.RunTurn();
 
 		MessageBox.Show(winner == null ? "Draw" : $"Winner: {winner.Side}", "Result", MessageBoxButton.OK, MessageBoxImage.Information);
 	}

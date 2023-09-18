@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -7,8 +8,19 @@ namespace SuperAutoProfessionals;
 
 public class Game
 {
+	public Game(Team left, Team right)
+	{
+		_left = left;
+		_right = right;
+
+		left.SetGame(this);
+		right.SetGame(this);
+	}
+
 	Random _rnd = new();
+	readonly Team _left, _right;
 	readonly List<TurnEvent> _events = new();
+	readonly List<Professional> _deads = new();
 
 	public bool LogTeams { get; set; } = true;
 	public ILogger Logger { get; set; } = ConsoleLogger.Instance;
@@ -16,49 +28,33 @@ public class Game
 
 	public void Log(string text) { Logger.WriteLine(text); }
 
-	public async Task<Team?> RunTurn(Team left, Team right)
+	public async Task<Team?> RunTurn()
 	{
-		left.SetGame(this);
-		right.SetGame(this);
 		logTeams();
 		await WaitForNextIteration();
 
-		left.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
-		right.ForEach(p => _events.Add(new TurnEvent(p, Event.StartOfBattle)));
+		NotifyAll(Event.StartOfBattle);
 		ProcessEvents();
 
-		IEnumerable<Event> events;
-		void addEvents(Professional p)
-		{
-			foreach (var e in events)
-				_events.Add(new TurnEvent(p, e));
-		}
-
 		int iteration = 1;
-		while (left.AnyLeft && right.AnyLeft)
+		while (_left.AnyLeft && _right.AnyLeft)
 		{
 			Log($"Iteration #{iteration++}");
 
 			Professional
-				lp = left.First!,
-				rp = right.First!;
+				lp = _left.First!,
+				rp = _right.First!;
 
 			process(EventCode.BeforeAttack);
 
-			lp.Health -= rp.Attack;
-			rp.Health -= lp.Attack;
+			if (!lp.IsDead && !rp.IsDead)
+			{
+				lp.Health -= rp.Attack;
+				rp.Health -= lp.Attack;
 
-			process(EventCode.AfterAttack);
-			process(EventCode.Hurt);
-
-			events = dieEvents().ToList();
-			addAndProcess();
-
-			if (lp.IsDead)
-				left[lp.Index] = null;
-
-			if (rp.IsDead)
-				right[rp.Index] = null;
+				process(EventCode.AfterAttack);
+				process(EventCode.Hurt);
+			}
 
 			logTeams();
 			
@@ -66,32 +62,20 @@ public class Game
 
 			void process(EventCode code)
 			{
-				events = new Event[] { new(code, lp), new(code, rp) };
-				addAndProcess();
-			}
-
-			void addAndProcess()
-			{
-				left.ForEach(addEvents);
-				right.ForEach(addEvents);
+				NotifyAll(new Event(code, lp));
+				NotifyAll(new Event(code, rp));
 				ProcessEvents();
-			}
-
-			IEnumerable<Event> dieEvents()
-			{
-				if (lp.IsDead) yield return new Event(EventCode.Die, lp);
-				if (rp.IsDead) yield return new Event(EventCode.Die, rp);
 			}
 		}
 
-		return left.AnyLeft
-			? left
-			: right.AnyLeft ? right : null;
+		return _left.AnyLeft
+			? _left
+			: _right.AnyLeft ? _right : null;
 
 		void logTeams()
 		{
 			if (LogTeams)
-				Log($"{left} - {right}");
+				Log($"{_left} - {_right}");
 		}
 	}
 
@@ -112,11 +96,46 @@ public class Game
 			}
 
 			if (next == null)
+			{
+				CheckDeads();
+				if (_events.Any()) continue;
+
 				return; // All events are processed
+			}
 
 			next.Call();
 			_events.Remove(next);
 		}
+	}
+
+	void CheckDeads()
+	{
+		var deads = _left.Deads
+			.Concat(_right.Deads)
+			.Where(p => !_deads.Contains(p))
+			.ToList();
+
+		if (!deads.Any()) return;
+
+		foreach (var dead in deads)
+		{
+			_deads.Add(dead);
+			NotifyAll(new Event(EventCode.Die, dead));
+		}
+
+		ProcessEvents();
+
+		foreach (var dead in deads)
+		{
+			_deads.Remove(dead);
+			dead.Team.Remove(dead);
+		}
+	}
+
+	void NotifyAll(Event e)
+	{
+		_left.ForEach(p => _events.Add(new TurnEvent(p, e)));
+		_right.ForEach(p => _events.Add(new TurnEvent(p, e)));
 	}
 
 	static Task WaitForNextIterationByConsole()

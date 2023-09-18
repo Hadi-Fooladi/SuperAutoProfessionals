@@ -6,7 +6,6 @@ internal class Program
 {
 	static void Main()
 	{
-		var game = new Game();
 
 		var left = new Professional?[]
 		{
@@ -26,7 +25,9 @@ internal class Program
 			null
 		};
 
-		var winner = game.RunTurn(new Team(left, Side.Left), new Team(right, Side.Right)).Result;
+		var game = new Game(new Team(left, Side.Left), new Team(right, Side.Right));
+
+		var winner = game.RunTurn().Result;
 
 		Console.WriteLine();
 		Console.WriteLine();
