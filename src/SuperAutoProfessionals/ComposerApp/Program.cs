@@ -1,4 +1,5 @@
-﻿using SuperAutoProfessionals;
+﻿using System.Reflection;
+using SuperAutoProfessionals;
 
 namespace ComposerApp;
 
@@ -6,6 +7,20 @@ internal class Program
 {
     static void Main(string[] args)
     {
+        var professionalType = typeof(Professional);
+
+        var asm = professionalType.Assembly;
+        var allTypes = asm.GetExportedTypes();
+
+        Add(professionalType);
+
+        foreach (var type in allTypes)
+        {
+            if (!type.IsClass) continue;
+            if (type.IsSubclassOf(professionalType))
+                Add(type);
+        }
+
         Professional?[]
             left = BuildTeam("Left"),
             right = BuildTeam("Right");
@@ -15,6 +30,16 @@ internal class Program
 
         var game = new Game(leftTeam, rightTeam);
         var winner = game.RunTurn();
+    }
+
+    static Dictionary<string, Type> s_typeByCondeName = new();
+
+    static void Add(Type type)
+    {
+        var obj = Activator.CreateInstance(type);
+
+        var pro = (Professional)obj!;
+        s_typeByCondeName[pro.CodeName] = type;
     }
 
     public static Professional?[] BuildTeam(string side)
@@ -54,15 +79,10 @@ internal class Program
 
     public static Professional? CreateProfessionalByCodeName(string codeName)
     {
-        switch (codeName)
-        {
-        default: return null;
-        case "Bu": return new Buthcer();
-        case "GD": return new GraveDigger();
-        case "Nu": return new Nurse();
-        case "Tr": return new Trainer();
-        case "Pr": return new Professional();
-        }
+        if (s_typeByCondeName.TryGetValue(codeName, out var type))
+            return (Professional)Activator.CreateInstance(type)!;
+
+        return null;
     }
 
     public static int GetHealthOrAttack(string prompt)
